@@ -1,69 +1,79 @@
 import React, { useState } from 'react';
-import { useReadContract, useWriteContract, useSimulateContract, useWatchContractEvent } from 'wagmi'
+import { useWeb3 } from '../contexts/Web3Context';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../config/contracts'
 import { parseEther, formatEther } from 'viem';
 
 
 export const useDepositWithdraw = () => {
-
+    const { useReadContract, useWriteContract, useWatchContractEvent } = useWeb3();
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
 
     const { data: balance, refetch: refetchBalance } = useReadContract({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
-        functionName: 'getTotalBalance'
+        functionName: 'getTotalBalance',
     });
 
-    const { writeContract: writeDeposit, isPending: isDepositPending } = useWriteContract();
-    const { writeContract: writeWithdraw, isPending: isWithdrawPending } = useWriteContract();
+    const { writeContractAsync: writeDeposit, isPending: isDepositPending } = useWriteContract();
+    const { writeContractAsync: writeWithdraw, isPending: isWithdrawPending } = useWriteContract();
 
+    // Listen for deposit event
     useWatchContractEvent({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         eventName: 'Deposit',
-        onLogs() {
-            refetchBalance();
-        },
+        onLogs: () => refetchBalance(),
     });
 
+    // Listen for withdrawal event
     useWatchContractEvent({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         eventName: 'Withdrawal',
-        onLogs() {
-            refetchBalance();
-        },
+        onLogs: () => refetchBalance(),
     });
 
-    const deposit =  (amount) => {
+    // Deposit Function
+    const deposit = async (amount) => {
         try {
             setError(null);
             setIsProcessing(true);
-            writeDeposit({
+
+            await writeDeposit({
                 address: CONTRACT_ADDRESS,
                 abi: CONTRACT_ABI,
                 functionName: 'deposit',
-                value: parseEther(amount)
+                value: parseEther(amount),
             });
+
+            // Refresh balance after deposit
+            await refetchBalance();
         } catch (err) {
+            console.error("Deposit failed:", err);
             setError(err.message);
         } finally {
             setIsProcessing(false);
         }
     };
 
-    const withdraw = (amount) => {
+    // Withdraw Function
+    const withdraw = async (amount) => {
         try {
             setError(null);
             setIsProcessing(true);
-            writeWithdraw({
+
+            await writeWithdraw({
                 address: CONTRACT_ADDRESS,
                 abi: CONTRACT_ABI,
                 functionName: 'withdraw',
-                args: [parseEther(amount)]
+                args: [parseEther(amount)],
             });
+
+            // Refresh balance after withdrawal
+            await refetchBalance();
         } catch (err) {
+            console.error("Withdrawal failed:", err);
             setError(err.message);
         } finally {
             setIsProcessing(false);
@@ -77,8 +87,8 @@ export const useDepositWithdraw = () => {
         isLoading: isDepositPending || isWithdrawPending,
         isProcessing,
         error,
-        refetchBalance
+        refetchBalance,
     };
-}
+};
 
 
