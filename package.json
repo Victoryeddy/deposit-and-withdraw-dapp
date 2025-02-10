@@ -1,0 +1,17 @@
+{
+  "name": "deposit-and-withdraw-dapp",
+  "private": true,
+  "scripts": {
+    "frontend": "cd frontend && npm run dev",
+    "contracts:test": "cd contracts && ~/.foundry/bin/forge test",
+    "contracts:coverage": "cd contracts && ~/.foundry/bin/forge coverage",
+    "contracts:format": "cd contracts && ~/.foundry/bin/forge fmt",
+    "contracts:build": "cd contracts && ~/.foundry/bin/forge build",
+    "contracts:openzeppelin": "cd contracts && ~/.foundry/bin/forge install OpenZeppelin/openzeppelin-contracts --no-commit",
+    "contracts:clean": "cd contracts && ~/.foundry/bin/forge clean",
+    "contracts:decode": "cd contracts &&  clean",
+    "contracts:deploy": "source .env && cd contracts && ~/.foundry/bin/forge script script/DeployFundMe.s.sol:DeployFundMe --rpc-url $SEPOLIA_RPC_URL --account PrimaryKey  --broadcast",
+    "postinstall": "cd frontend && npm install"
+  }
+  
+}
