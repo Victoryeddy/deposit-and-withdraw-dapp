@@ -22,7 +22,7 @@ const config = createConfig({
 
 function App() {
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={config} initialState={{chainId: sepolia.id}}>
       <QueryClientProvider client={queryClient}>
         <Web3Provider>
           <div className="min-h-screen bg-gray-100 py-12">
